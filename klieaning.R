@@ -300,6 +300,6 @@ onlymanipulation$gr_2 <- onlymanipulation$gr_1 #voluntary
 
 save(mand, file="mand.RData")
 
-#done
+#done yeehaw
 
 setwd("Users/gulruhorozoglu/Nextcloud/wp2_new")
