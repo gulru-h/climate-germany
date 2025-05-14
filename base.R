@@ -21,89 +21,28 @@ library(lavaan)
 #3 - control
 
 
-#3 group
-groupcom <- aov(ssec ~ c_0001, data=forsem_s)
-summary(groupcom)
-TukeyHSD(groupcom)
 
 #only manipulation
-groupcom_man <- aov(ssec ~ c_0001+tsec, data=onlymanipulation)
+groupcom_man <- aov(ssec ~ gr, data=onlymanipulation)
 summary(groupcom_man)
 TukeyHSD(groupcom_man)
 
+ggplot(groupcom_man, aes(gr, ssec)) + 
+  geom_boxplot() +
+  labs(x="Group (1=voluntary, 2 = mandatory)", y="(S) Need for security")+
+  scale_fill_brewer(palette = "Pastel1")
+
 #comparisons with control are significant
 
-
-#3 group
-groupcom_free <- aov(sfree ~ c_0001, data=mand)
-summary(groupcom_free)
-TukeyHSD(groupcom_free)
-
-class()
-
 #only manipulation
-groupcom_manfree <- aov(sfree ~ c_0001, data=onlymanipulation)
+groupcom_manfree <- aov(sfree ~ gr, data=onlymanipulation)
 summary(groupcom_manfree)
 TukeyHSD(groupcom_manfree)
 
-##############pairwise comparisons
-gtsummary::theme_gtsummary_mean_sd()
-
-# function to add pairwise copmarisons to `tbl_summary()`
-add_stat_pairwise <- function(data, variable, by, ...) {
-  # calculate pairwise p-values
-  pw <- pairwise.t.test(data[[variable]], data[[by]], p.adj = "none")
-  
-  # convert p-values to list
-  index <- 0L
-  p.value.list <- list()
-  for (i in seq_len(nrow(pw$p.value))) {
-    for (j in seq_len(nrow(pw$p.value))) {
-      index <- index + 1L
-      
-      p.value.list[[index]] <- 
-        c(pw$p.value[i, j]) %>%
-        setNames(glue::glue("**{colnames(pw$p.value)[j]} vs. {rownames(pw$p.value)[i]}**"))
-    }
-  }
-  
-  # convert list to data frame
-  p.value.list %>% 
-    unlist() %>%
-    purrr::discard(is.na) %>%
-    t() %>%
-    as.data.frame() %>%
-    # formatting/roundign p-values
-    dplyr::mutate(dplyr::across(everything(), gtsummary::style_pvalue))
-}
-
-mand %>%
-  select(ssec, c_0001, tsec) %>%
-  gtsummary::tbl_summary(by = c_0001, missing = "no") %>%
-  # add pariwaise p-values
-  gtsummary::add_stat(everything() ~ add_stat_pairwise) %>%
-  print()
-
-?as_kable()
-
-
-#anova results 
-tbl <- 
-  mand %>%
-  select(ssec, c_0001, tsec) %>%
-  gtsummary::tbl_summary(
-    by = c_0001, 
-    missing = "no"
-  ) %>%
-  gtsummary::add_p(gtsummary::all_continuous() ~ "oneway.test") %>%
-  # add a header (which also unhides a hidden column)
-  gtsummary::modify_header(statistic ~ "**Test Statistic**") %>%
-  # add a function to format the column
-  gtsummary::modify_fmt_fun(statistic ~ gtsummary::style_sigfig)
-tbl |>
-  gtsummary::modify_header(label = "**Variable**", p.value = "**P**") 
-
-
+ggplot(groupcom_manfree, aes(gr, sfree)) + 
+  geom_boxplot() +
+  labs(x="Group (1=voluntary, 2 = mandatory)", y="(S) Need for freedom")+
+  scale_fill_brewer(palette = "Pastel1")
 #make the grouping variable ordered
 mand$c_0001 <- ordered(mand$c_0001, levels = c("1", "2", "3"))
 
@@ -117,88 +56,8 @@ micron <- aov(micronarratives ~ c_0001, data=mand)
 summary(micron)
 TukeyHSD(micron)
 
-#create a manipulation only group without the control group
-rm(onlymanipulation)
-onlymanipulation <- mand[mand$c_0001 ==1 |mand$c_0001 ==2 , ]
-
-onlymanipulation$man_eff<- as.numeric(onlymanipulation$man_eff)
-tbl <- 
-  onlymanipulation %>%
-  gtsummary::select(man_eff, c_0001) %>%
-  gtsummary::tbl_summary(
-    by = c_0001, 
-    missing = "no"
-  ) %>%
-  gtsummary::add_p(gtsummary::all_continuous() ~ "oneway.test") %>%
-  # add a header (which also unhides a hidden column)
-  gtsummary::modify_header(statistic ~ "**Test Statistic**") %>%
-  # add a function to format the column
-  gtsummary::modify_fmt_fun(statistic ~ gtsummary::style_sigfig)
-tbl |>
-  gtsummary::modify_header(label = "**Variable**", p.value = "**P**") 
-
-class(mand$c_0001)
-mand$c_0001
-
-
 
 ##############pairwise comparisons
-
-gtsummary::theme_gtsummary_mean_sd()
-
-# function to add pairwise comparisons to `tbl_summary()`
-add_stat_pairwise <- function(data, variable, by, ...) {
-  # calculate pairwise p-values
-  pw <- pairwise.t.test(data[[variable]], data[[by]], p.adj = "none")
-  
-  # convert p-values to list
-  index <- 0L
-  p.value.list <- list()
-  for (i in seq_len(nrow(pw$p.value))) {
-    for (j in seq_len(nrow(pw$p.value))) {
-      index <- index + 1L
-      
-      p.value.list[[index]] <- 
-        c(pw$p.value[i, j]) %>%
-        setNames(glue::glue("**{colnames(pw$p.value)[j]} vs. {rownames(pw$p.value)[i]}**"))
-    }
-  }
-  
-  # convert list to data frame
-  p.value.list %>% 
-    unlist() %>%
-    purrr::discard(is.na) %>%
-    t() %>%
-    as.data.frame() %>%
-    # formatting/roundign p-values
-    dplyr::mutate(dplyr::across(everything(), gtsummary::style_pvalue))
-}
-
-onlymanipulation %>%
-  select(micronarratives, c_0001) %>%
-  gtsummary::tbl_summary(by = c_0001, missing = "no") %>%
-  # add pariwaise p-values
-  gtsummary::add_stat(everything() ~ add_stat_pairwise) %>%
-  print()
-
-?as_kable()
-??ddply
-
-tbl <- 
-  onlymanipulation %>%
-  select(mainstream, c_0001) %>%
-  gtsummary::tbl_summary(
-    by = c_0001, 
-    missing = "no"
-  ) %>%
-  gtsummary::add_p(gtsummary::all_continuous() ~ "oneway.test") %>%
-  # add a header (which also unhides a hidden column)
-  gtsummary::modify_header(statistic ~ "**Test Statistic**") %>%
-  # add a function to format the column
-  gtsummary::modify_fmt_fun(statistic ~ gtsummary::style_sigfig)
-tbl |>
-  gtsummary::modify_header(label = "**Variable**", p.value = "**P**") 
-
 
 #trajectory of need for security values
 list(mand[mand$c_0001==3,]$ssec)

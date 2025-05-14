@@ -133,7 +133,8 @@ center_scale <- function(x) {
   scale(x, scale = FALSE)
 }
 
-
+#ungrouped
+ggcorrplot(cor_mat, lab = TRUE, type = "upper")
 
 # apply it
 center_scale(cors)
