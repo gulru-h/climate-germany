@@ -57,12 +57,19 @@ des.mat <- describeBy(manddes ~ gr,
 
 ##correlations
 #method1
-cors <- subset(mand[,c(2, 9:12, 34, 61, 65:70, 71:72, 16:20)])
+cors <- subset(mand[,c(2, 9:12, 34, 61, 65:70, 72:73, 20)])
 cors1 <- cors[mand$c_0001==1, ]
 cors2 <- cors[mand$c_0001==2, ]
 cors3 <- cors[mand$c_0001==3, ]
 
+corssmall <- subset(onlymanipulation[,c(2, 9:12, 34, 61, 65:70, 72:73, 20)])
 
+
+
+names(onlymanipulation)
+
+
+#correlation matrix by group
 cors %>% 
   nest_by(gr) %>% 
   summarise(CorMat = cor(cors))
@@ -73,19 +80,19 @@ item_classes <- lapply(cors, class)
 
 cors$gr <- as.numeric(cors$gr)
 
-
+#visualisation
+colnames(corssmall) <- displaynames
 
 # Split data by group
-grouped_data <- split(cors, cors$gr)
+grouped_data <- split(corssmall, corssmall$gr)
 
 # Create correlation matrix for each group
 cor_matrices <- lapply(grouped_data, function(grouped_df) {
-  cor(grouped_df[, 2:19])  # Exclude the grouping column
+  cor(grouped_df[, 2:16])  # Exclude the grouping column
 })
 
 # View the result
 cor_matrices
-
 
 
 library(ggplot2)
@@ -93,7 +100,7 @@ library(ggcorrplot)
 
 # Compute and plot for each group
 for (gr in names(grouped_data)) {
-  cor_mat <- cor(grouped_data[[gr]][, 2:19])
+  cor_mat <- cor(grouped_data[[gr]][, 2:16])
   
   print(ggcorrplot(cor_mat, 
                    lab = TRUE, 
@@ -101,21 +108,26 @@ for (gr in names(grouped_data)) {
 }
 
 
-install.packages("gridExtra")
+
+#install.packages("gridExtra")
 library(gridExtra)
 
 plots <- lapply(names(grouped_data), function(gr) {
-  cor_mat <- cor(grouped_data[[gr]][, 2:19])
+  cor_mat <- cor(grouped_data[[gr]][, 2:16])
   ggcorrplot(cor_mat, lab = TRUE, title = paste("Group", gr))
 })
 
 # Arrange side by side
 do.call(gridExtra::grid.arrange, c(plots, ncol = length(plots)))
 
-?grid.arrange
 
-
-
+displaynames<- c("gr", "Left Wing Media", "Right Wing Media",
+                   "Social Media", "Active media use", "Financial Burden",
+                   "SES", "Financial Situation",
+                   "(T)Need for Security", "(T)Need for Freedom", 
+                   "(S)Need for Security", "(S)Need for Freedom",
+                   "Acceptability","Anti-mainstream narratives",
+                   "Mainstream Narratives", "Trust in the government")
 
 center_scale <- function(x) {
   scale(x, scale = FALSE)
