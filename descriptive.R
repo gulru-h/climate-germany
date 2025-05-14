@@ -20,6 +20,7 @@ mand$pol <- as.factor(mand$pol)
 mand[,16:20] <- lapply(mand[,16:20],as.numeric)
 ?as.numeric
 
+sd(mand$SES)
 
 ##descriptives
 
@@ -37,19 +38,90 @@ table1 <-
                          statistic = list(gtsummary::all_continuous() ~ "{median} ({p25}, {p75})",
                                           gtsummary::all_categorical() ~"{n} ({p}%)"),)
 
+#1CDU/CSU
+#2SPD
+#3Bündnis 90/Die Grünen
+#4FDP
+#5Die Linke
+#6Bündnis Sahra Wagenknecht (BSW)
+#7AfD
+#8Andere Partei
+#9Ich würde nicht wählen
+#10Ich möchte dazu keine Angabe machen"
+
+#description per group
+manddes <- mand[,c(2, 9:12, 34, 61, 64:70, 71:72, 16:20, 59, 61, 62, 63)]
+des.mat <- describeBy(manddes ~ gr,
+                      mat=TRUE,digits=2)
 
 
 ##correlations
 #method1
-cors <- subset(mand[,c(9:12, 34, 61, 64:69, 71:72, 16:20 )])
+cors <- subset(mand[,c(2, 9:12, 34, 61, 65:70, 71:72, 16:20)])
 cors1 <- cors[mand$c_0001==1, ]
 cors2 <- cors[mand$c_0001==2, ]
 cors3 <- cors[mand$c_0001==3, ]
 
 
+cors %>% 
+  nest_by(gr) %>% 
+  summarise(CorMat = cor(cors))
+
+
+item_classes <- lapply(cors, class)
+
+
+cors$gr <- as.numeric(cors$gr)
+
+
+
+# Split data by group
+grouped_data <- split(cors, cors$gr)
+
+# Create correlation matrix for each group
+cor_matrices <- lapply(grouped_data, function(grouped_df) {
+  cor(grouped_df[, 2:19])  # Exclude the grouping column
+})
+
+# View the result
+cor_matrices
+
+
+
+library(ggplot2)
+library(ggcorrplot)
+
+# Compute and plot for each group
+for (gr in names(grouped_data)) {
+  cor_mat <- cor(grouped_data[[gr]][, 2:19])
+  
+  print(ggcorrplot(cor_mat, 
+                   lab = TRUE, 
+                   title = paste("Correlation - Group", gr)))
+}
+
+
+install.packages("gridExtra")
+library(gridExtra)
+
+plots <- lapply(names(grouped_data), function(gr) {
+  cor_mat <- cor(grouped_data[[gr]][, 2:19])
+  ggcorrplot(cor_mat, lab = TRUE, title = paste("Group", gr))
+})
+
+# Arrange side by side
+do.call(gridExtra::grid.arrange, c(plots, ncol = length(plots)))
+
+?grid.arrange
+
+
+
+
 center_scale <- function(x) {
   scale(x, scale = FALSE)
 }
+
+
 
 # apply it
 center_scale(cors)
