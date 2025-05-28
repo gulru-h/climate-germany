@@ -297,9 +297,13 @@ mand <- fastDummies::dummy_cols(mand,
 onlymanipulation$gr_1 <- onlymanipulation$gr_2 # obligatory
 onlymanipulation$gr_2 <- onlymanipulation$gr_1 #voluntary
 
+onlymanipulation$gr_a[onlymanipulation$gr == 1] <- 2
+onlymanipulation$gr_a[onlymanipulation$gr == 2] <- 1
+
+onlymanipulation$gr_a <- as.factor(onlymanipulation$gr_a)
+
 
 save(mand, file="mand.RData")
 
 #done yeehaw
 
-setwd("Users/gulruhorozoglu/Nextcloud/wp2_new")

@@ -117,6 +117,7 @@ estimates_tmed.fit <- parameterEstimates(tmed.fit, standardized=TRUE, boot.ci.ty
 View(estimates_tmed.fit)
 
 estimates_tmed.fit[68:69, ]
+estimates_tmed.fit[23, ]
 
 
 
@@ -130,7 +131,7 @@ tm_no_covs <- semptools::drop_nodes(
 pfad_layout<- get_layout("","traitneedsecurity", "", "","Micronarratives",
                          "trust5","", "","","",
                          "","stateneedsecurity","","","",
-                         "","gr_1","","","Mainstream",
+                         "gr_1","","","","Mainstream",
                          "ssec1", "ssec2", "ssec3", "narrative_2", "narrative_4", 
                          "narrative_6","narrative_8","tsec1","tsec2","tsec3", 
                          "narrative_1","narrative_3", "narrative_5", "narrative_7", "",
@@ -495,3 +496,7 @@ pfad_layout<- get_layout("","security", "", "","Micronarratives",
 
 tidySEM::graph_sem(model = free.fit, layout = pfad_layout) 
 
+b<- aov(micronarratives~gr, data=mand)
+summary(b)
+
+describeBy(micronarratives~gr, data = mand)

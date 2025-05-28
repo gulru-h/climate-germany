@@ -23,25 +23,25 @@ library(lavaan)
 
 
 #only manipulation
-groupcom_man <- aov(ssec ~ gr, data=onlymanipulation)
+groupcom_man <- aov(ssec ~ gr_a + tsec, data=onlymanipulation)
 summary(groupcom_man)
 TukeyHSD(groupcom_man)
 
-ggplot(groupcom_man, aes(gr, ssec)) + 
+ggplot(groupcom_man, aes(gr_a, ssec)) + 
   geom_boxplot() +
-  labs(x="Group (1=voluntary, 2 = mandatory)", y="(S) Need for security")+
+  labs(x="Group (1= mandatory, 2 = voluntary)", y="(S) Need for security")+
   scale_fill_brewer(palette = "Pastel1")
 
 #comparisons with control are significant
 
 #only manipulation
-groupcom_manfree <- aov(sfree ~ gr, data=onlymanipulation)
+groupcom_manfree <- aov(sfree ~ gr_a + tfree, data=onlymanipulation)
 summary(groupcom_manfree)
 TukeyHSD(groupcom_manfree)
 
-ggplot(groupcom_manfree, aes(gr, sfree)) + 
+ggplot(groupcom_manfree, aes(gr_a, sfree)) + 
   geom_boxplot() +
-  labs(x="Group (1=voluntary, 2 = mandatory)", y="(S) Need for freedom")+
+  labs(x="Group (1= mandatory, 2 = voluntary)", y="(S) Need for freedom")+
   scale_fill_brewer(palette = "Pastel1")
 #make the grouping variable ordered
 mand$c_0001 <- ordered(mand$c_0001, levels = c("1", "2", "3"))
