@@ -3,7 +3,7 @@ renv::init()
 renv::snapshot()
 
 usethis::create_github_token(description = "climate-germany")
-gitcreds::gitcreds_set() # <-- Token must *not* go into brackets, paste when asked
+gitcreds::gitcreds_set() 
 usethis::use_github()
 
 #"X:/LS-KESSELS/ALLGEMEIN/Gülru/digipatch/klima/klima"
