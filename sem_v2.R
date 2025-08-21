@@ -22,6 +22,10 @@ dmcforsem <- indProd(dmcforsem, var1= c("ssec1", "ssec2", "ssec3"),
                      var2=c("tsec1", "tsec2", "tsec3"),
                      match = FALSE , meanC = TRUE ,
                      residualC = FALSE , doubleMC = TRUE) 
+dmcforsem <- indProd(forsem, var1= c("ssec"),
+                     var2=c("tsec"),
+                     match = FALSE , meanC = TRUE ,
+                     residualC = FALSE , doubleMC = TRUE) 
 set.seed(545)
 med.model <- '
   stateneedsecurity =~ ssec1+ssec2+ssec3
@@ -30,11 +34,11 @@ med.model <- '
   traitneedsecurity=~ tsec1+tsec2+tsec3
   Micronarratives ~b1*stateneedsecurity#+traitneedsecurity
   Mainstream ~b2*stateneedsecurity#+traitneedsecurity
-  ssectsec=~ssec1.tsec1+ssec2.tsec1+ssec3.tsec1+ssec2.tsec1+ssec2.tsec2+ssec2.tsec3+
-  ssec3.tsec1+ssec3.tsec2+ssec3.tsec3
+  #ssectsec=~ssec1.tsec1+ssec2.tsec1+ssec3.tsec1+ssec2.tsec1+ssec2.tsec2+ssec2.tsec3+
+  #ssec3.tsec1+ssec3.tsec2+ssec3.tsec3
 
 
-  stateneedsecurity ~ a1*gr_1+ssectsec+traitneedsecurity
+  stateneedsecurity ~ a1*gr_1+ssec.tsec+traitneedsecurity
   Micronarratives ~ gr_1
   Mainstream ~gr_1
   Mainstream ~~Micronarratives
@@ -64,7 +68,7 @@ ssec3.tsec2	~~	ssec3.tsec3
 '
 
 med.fit <- sem(med.model, data = dmcforsem, estimator = "ML", missing = "FIML",
-               se = "bootstrap",bootstrap = 5000L, parallel ="snow")
+               se = "bootstrap",bootstrap = 50L, parallel ="snow")
 summary(med.fit, fit.measures=T, standardized = T, rsquare=TRUE)
 estimates_med.fit <- parameterEstimates(med.fit, standardized=TRUE, boot.ci.type="perc", level=0.95,
                                         zstat = FALSE, pvalue = FALSE, output = "data.frame")

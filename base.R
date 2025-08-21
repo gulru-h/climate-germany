@@ -1,4 +1,5 @@
 getwd()
+mand2 <- readRDS("mand.RData")
 
 #"X:/LS-KESSELS/ALLGEMEIN/Gülru/digipatch/klima/klima"
 library(careless)
@@ -20,26 +21,37 @@ library(lavaan)
 #2- verpflichtend
 #3 - control
 
-
-
+a <- aov(ssec ~ gr+tsec+finan, data=mand)
+summary(a)
+aa <- aov(ssec ~ gr, data=mand)
+TukeyHSD(aa)
+cohen.d(ssec ~ gr, data=mand)
 #only manipulation
-groupcom_man <- aov(ssec ~ gr_a + tsec, data=onlymanipulation)
-summary(groupcom_man)
-TukeyHSD(groupcom_man)
 
-ggplot(groupcom_man, aes(gr_a, ssec)) + 
+b <- aov(ssec ~ gr, data=onlymanipulation)
+summary(b)
+TukeyHSD(b)
+cohen.d(ssec ~ gr, data=onlymanipulation) #-.13
+
+ggplot(a, aes(gr_a, ssec)) + 
   geom_boxplot() +
   labs(x="Group (1= mandatory, 2 = voluntary)", y="(S) Need for security")+
   scale_fill_brewer(palette = "Pastel1")
 
 #comparisons with control are significant
 
-#only manipulation
-groupcom_manfree <- aov(sfree ~ gr_a + tfree, data=onlymanipulation)
-summary(groupcom_manfree)
-TukeyHSD(groupcom_manfree)
 
-ggplot(groupcom_manfree, aes(gr_a, sfree)) + 
+c <- aov(sfree ~ gr + tfree , data=mand)
+summary(c)
+TukeyHSD(c)
+#only manipulation
+d <- aov(sfree ~ gr_a, data=onlymanipulation)
+summary(d)
+TukeyHSD(d)
+dfree<- cohen.d(sfree ~ gr_a, data=onlymanipulation)
+summary(dfree)
+
+ggplot(c, aes(gr_a, sfree)) + 
   geom_boxplot() +
   labs(x="Group (1= mandatory, 2 = voluntary)", y="(S) Need for freedom")+
   scale_fill_brewer(palette = "Pastel1")
@@ -48,11 +60,11 @@ mand$c_0001 <- ordered(mand$c_0001, levels = c("1", "2", "3"))
 
 
 #anova + pairwise comparisons
-mainst <- aov(mainstream ~ c_0001, data=mand)
+mainst <- aov(mainstream ~ gr, data=mand)
 summary(mainst)
 TukeyHSD(mainst)
 
-micron <- aov(micronarratives ~ c_0001, data=mand)
+micron <- aov(micronarratives ~ gr, data=mand)
 summary(micron)
 TukeyHSD(micron)
 
@@ -157,6 +169,16 @@ m3.1 <- lm(mainstream~ ssec*med_act+tsec, data=onlymanipulation)
 summary(m3.1)
 ggpredict(m3.1, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
 
+m4 <- lm(micronarratives~ sfree*med_act+tfree, data=onlymanipulation)
+summary(m4)
+ggpredict(m3, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
+#non-sig
+
+m4.1 <- lm(mainstream~ sfree*med_act+tfree, data=onlymanipulation)
+summary(m4.1)
+ggpredict(m3.1, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
+
+
 #non-sig
 
 #direct
@@ -225,5 +247,6 @@ summary(results)
 
 
 
-
+t<- lm(mainstream~trust5, data=onlymanipulation)
+summary(t)
 

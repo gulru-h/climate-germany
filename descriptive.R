@@ -14,6 +14,7 @@ library(semTools)
 library(corrplot)
 library(lavaan)
 
+
 ###descriptives 
 
 mand$pol <- as.factor(mand$pol)
@@ -38,17 +39,6 @@ table1 <-
                          statistic = list(gtsummary::all_continuous() ~ "{median} ({p25}, {p75})",
                                           gtsummary::all_categorical() ~"{n} ({p}%)"),)
 
-#1CDU/CSU
-#2SPD
-#3Bündnis 90/Die Grünen
-#4FDP
-#5Die Linke
-#6Bündnis Sahra Wagenknecht (BSW)
-#7AfD
-#8Andere Partei
-#9Ich würde nicht wählen
-#10Ich möchte dazu keine Angabe machen"
-
 #description per group
 manddes <- mand[,c(2, 9:12, 34, 61, 64:70, 71:72, 16:20, 59, 61, 62, 63)]
 des.mat <- describeBy(manddes ~ gr,
@@ -57,44 +47,26 @@ des.mat <- describeBy(manddes ~ gr,
 
 ##correlations
 #method1
-cors <- subset(mand[,c(2, 9:12, 34, 61, 65:70, 72:73, 20)])
-cors1 <- cors[mand$c_0001==1, ]
-cors2 <- cors[mand$c_0001==2, ]
-cors3 <- cors[mand$c_0001==3, ]
+#cors <- subset(mand[,c(2, 9:12, 34, 61, 65:70, 72:73, 20)])
+cors <- subset(mand[,c(2, 34, 68, 69, 66,67, 20, 9, 72, 73, 35, 70)])
 
-corssmall <- subset(onlymanipulation[,c(2, 9:12, 34, 61, 65:70, 72:73, 20)])
-
-
-
-names(onlymanipulation)
-
-
-#correlation matrix by group
-cors %>% 
-  nest_by(gr) %>% 
-  summarise(CorMat = cor(cors))
-
-
-item_classes <- lapply(cors, class)
-
-
-cors$gr <- as.numeric(cors$gr)
-
-#visualisation
-colnames(corssmall) <- displaynames
+cors1 <- cors[cors$gr==1, ]
+cors2 <- cors[cors$gr==2, ]
+cors3 <- cors[cors$gr==3, ]
 
 # Split data by group
 grouped_data <- split(corssmall, corssmall$gr)
 
 # Create correlation matrix for each group
 cor_matrices <- lapply(grouped_data, function(grouped_df) {
-  cor(grouped_df[, 2:16])  # Exclude the grouping column
+  cor(grouped_df[, 2:16])  # excluding the grouping column
 })
 
 # View the result
 cor_matrices
 
 
+#visualisation
 library(ggplot2)
 library(ggcorrplot)
 
@@ -129,64 +101,11 @@ displaynames<- c("gr", "Left Wing Media", "Right Wing Media",
                    "Acceptability","Anti-mainstream narratives",
                    "Mainstream Narratives", "Trust in the government")
 
-center_scale <- function(x) {
-  scale(x, scale = FALSE)
-}
-
 #ungrouped
 ggcorrplot(cor_mat, lab = TRUE, type = "upper")
 
-# apply it
-center_scale(cors)
-
-M <- cor(cors)
-M1<- cor(cors1)
-M2<- cor(cors2)
-M3<- cor(cors3)
-corrplot(M1, method="number")
-corrplot(M2, method="number")
-corrplot(M3, method="number")
-#-0.306434250
-
-?corrplot
-
-colnames(M) <- c("Left Wing Media", "Right Wing Media",
-                 "Social Media", "Active media use", "Financial Burden",
-                 "SES", "Financial Situation",
-                 "(T)Need for Security", "(T)Need for Freedom", 
-                 "(S)Need for Security", "(S)Need for Freedom",
-                 "Acceptability","micronarratives",
-                 "mainstream", "Science", "Popular media", "Others on Social Media",
-                 "EU", "Germany")
-rownames(M) <- c("Left Wing Media", "Right Wing Media",
-                 "Social Media", "Active media use", "Financial Burden",
-                 "SES", "Financial Situation",
-                 "(T)Need for Security", "(T)Need for Freedom", 
-                 "(S)Need for Security", "(S)Need for Freedom",
-                 "Acceptability","micronarratives",
-                 "mainstream", "Science", "Popular media", "Others on Social Media",
-                 "EU", "Germany")
-
-
-
-PLO<- corrplot(M, method="number", )
 
 #method 2
-
-df.corr <- psych::corr.test(cors, adjust = "none")
-
-inter_corr_r <- df.corr$stars
-inter_corr_r <- cbind(var = rownames(inter_corr_r), inter_corr_r)
-inter_corr_r <- as.data.frame(inter_corr_r)
-
-ft.corr <- flextable(inter_corr_r) |> 
-  set_header_labels(var = "")
-ft.corr
-
-
-#method3
-
-
 
 # centering with 'scale()'
 center_scale <- function(x) {
@@ -228,3 +147,5 @@ g = ggpairs(cors_s, lower = list(continuous = my_fn),
 g
 
 
+a <- aov(age~ssec+tsec, data=forsem)
+summary(a)

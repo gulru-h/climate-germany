@@ -17,23 +17,27 @@ library(lavaan)
 ##########DO NOT TOUCH################
 ########Datenbereinigung######
 
-raw <- read.csv("data8.csv", sep = ";", na.strings = "-99")  #only the completes
+#raw <- read.csv("data8.csv", sep = ";", na.strings = "-99")  #only the completes
 
-raw1 <- read.csv("data3.csv", sep = ";", na.strings = "-99")  #only the completes
+#raw1 <- read.csv("data3.csv", sep = ";", na.strings = "-99")  #only the completes
 
-raw[c(1:189), ]$c_0001[raw[c(1:189), ]$c_0001==1 | raw[c(1:189), ]$c_0001==3] <- 1
-raw[c(189:236), ]$c_0001 <- 1
+#raw[c(1:189), ]$c_0001[raw[c(1:189), ]$c_0001==1 | raw[c(1:189), ]$c_0001==3] <- 1
+#raw[c(189:236), ]$c_0001 <- 1
 
-raw1[c(519:711), ]$c_0001[raw1[c(519:711), ]$c_0001==1 | raw1[c(519:711), ]$c_0001==3] <- 1
-raw1 <- raw1[c(13:711),]
+#raw1[c(519:711), ]$c_0001[raw1[c(519:711), ]$c_0001==1 | raw1[c(519:711), ]$c_0001==3] <- 1
+#raw1 <- raw1[c(13:711),]
 
-raw1$c_0001
+#raw1$c_0001
 
-colnames(raw1) <- colnames(raw)    
+#colnames(raw1) <- colnames(raw)    
 
-raw <- rbind(raw1, raw)
-?rbind
+#raw <- rbind(raw1, raw)
 #935
+#write.csv(raw, "raw.csv")
+
+raw2 <- read.csv("raw.csv")
+raw <- raw2[, 2:146]
+
 clean <- raw
 clean$country <- "DE"
 
@@ -44,8 +48,6 @@ which(clean$v_114 == 0) #check successful -- all own a house/apartment
 #group sizes
 table(clean$c_0001)
 #   1   2   3 
-#462 290 170 
-#458 290 174 
 #470 295 170 
 
 #number of completes
@@ -189,10 +191,10 @@ table(mand$c_0001)
 mand$duration_m <- mand$duration/60
 summary(mand$duration_m)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  1.767   7.867  10.917  13.098  14.708 119.400 
+# 1.767   7.867  10.900  13.092  14.704 119.400 
 
 sd(mand$duration_m)
-# 9.730499
+# 9.72077
 
 #due to the age of the participants we decided to only remove the too quick 
 #answers 
@@ -214,7 +216,6 @@ ggplot(mand, aes(y = duration_m)) + geom_boxplot()
 
 
 #creating a manipulation only group 
-
 
 table(mand$c_0001)
 #  1   2   3 
@@ -283,19 +284,15 @@ onlymanipulation <- mand[mand$gr ==1 |mand$gr ==2 , ]
 onlymanipulation$gr <- ordered(onlymanipulation$gr, levels = c("1", "2"))
 
 
-# Load the library
 library(fastDummies)
-
-
 # Create dummy variable
 onlymanipulation <- fastDummies::dummy_cols(onlymanipulation, 
                                             select_columns = "gr")
-mand <- fastDummies::dummy_cols(mand, 
-                                            select_columns = "gr")
+mand <- fastDummies::dummy_cols(mand, select_columns = "gr")
 
-#to make comparisons easier
-onlymanipulation$gr_1 <- onlymanipulation$gr_2 # obligatory
-onlymanipulation$gr_2 <- onlymanipulation$gr_1 #voluntary
+#to make comparisons easier with Poland
+onlymanipulation$gr_1 <- onlymanipulation$gr_2 # obligatory: group 1 is mandatory
+#onlymanipulation$gr_2 <- onlymanipulation$gr_1 #voluntary: group 2 is voluntary
 
 onlymanipulation$gr_a[onlymanipulation$gr == 1] <- 2
 onlymanipulation$gr_a[onlymanipulation$gr == 2] <- 1
@@ -305,5 +302,14 @@ onlymanipulation$gr_a <- as.factor(onlymanipulation$gr_a)
 
 save(mand, file="mand.RData")
 
-#done yeehaw
+#done with cleaning plus data wrangling 
+
+
+
+
+
+
+
+
+
 
