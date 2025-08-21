@@ -5,6 +5,7 @@ renv::snapshot()
 usethis::create_github_token(description = "climate-germany")
 gitcreds::gitcreds_set() 
 usethis::use_github()
+usethis::gh_token_help()
 
 #"X:/LS-KESSELS/ALLGEMEIN/Gülru/digipatch/klima/klima"
 library(careless)
