@@ -24,7 +24,7 @@ library(ggplot2)
 library(ggeffects)
 
 ##########DO NOT TOUCH################
-########Datenbereinigung######
+########data cleaning######
 
 #raw <- read.csv("data8.csv", sep = ";", na.strings = "-99")  #only the completes
 
@@ -44,14 +44,14 @@ library(ggeffects)
 #935
 #write.csv(raw, "raw.csv")
 
+#use the raw.csv file!
 raw2 <- read.csv("raw.csv")
 raw <- raw2[, 2:146]
 
 clean <- raw
-clean$country <- "DE"
 
 table(clean$c_0001)
-#eigentümer check 
+#homeowner check 
 which(clean$v_114 == 0) #check successful -- all own a house/apartment
 
 #group sizes
@@ -61,12 +61,11 @@ table(clean$c_0001)
 
 #number of completes
 nrow(clean)
-#922 complete cases
-#935
+#935 complete cases
+#
 
 #remove empty columns
 clean <- clean[,-c(18:29)]
-
 
 #combine variables
 
@@ -97,55 +96,37 @@ table(clean$c_0001)
 #checking ranges
 
 #age
-range(clean$age)  #30 to 88
+range(clean$age)  
 which(clean$age == 722)  #correct age
 clean[266,]$age <- 72
 mean(clean$age, na.rm = T)
-
-
-#gender
-table(clean$gender)
-#169 women 336 men
-
-#ses
-range(clean$SES, na.rm = T)
-hist(clean$SES)
-#normal-ish
-
-#pol
-hist(clean$pol)
-table(clean$pol)
-#1CDU/CSU
-#2SPD
-#3Bündnis 90/Die Grünen
-#4FDP
-#5Die Linke
-#6Bündnis Sahra Wagenknecht (BSW)
-#7AfD
-#8Andere Partei
-#9Ich würde nicht wählen
-#10Ich möchte dazu keine Angabe machen"
 
 
 ####build means####
 
 finan <- subset(clean[,c(13:15)])
 clean$finan <- apply(finan, 1, mean, na.rm=T)
+alpha(finan) #.95
 
 tsec <- subset(clean[,c(21:23)])
 clean$tsec <- apply(tsec, 1, mean, na.rm=T)
+alpha(tsec) #.74 
 
 tfree <- subset(clean[,c(24:26)])
 clean$tfree <- apply(tfree, 1, mean, na.rm=T)
+alpha(tfree) #.81 
 
 ssec <- subset(clean[,c(27:29)])
 clean$ssec <- apply(ssec, 1, mean, na.rm=T)
+alpha(ssec)#.96
 
 sfree <- subset(clean[,c(30:32)])
 clean$sfree <- apply(sfree, 1, mean, na.rm=T)
+alpha(sfree)#.97
 
 man_acc <- subset(clean[,c(36,37)])
 clean$man_acc <- apply(man_acc, 1, mean, na.rm=T)
+alpha(man_acc) #.94
 
 #save manipulation indicator as a factor
 class(clean$c_0001)
@@ -232,52 +213,15 @@ table(mand$c_0001)
 ##########DO NOT TOUCH#######
 
 
-#check if anyone in the sample already had exclusively climate friendly heaters 
-table(mand[ , mand$heiz1==1 & mand[, c(40:45)] == 0]$heiz1)
-mand$heiz1[mand$heiz1==2 & mand[, c(40:44)] == 0]
-
-#make the grouping variable ordered
-mand$c_0001 <- ordered(mand$c_0001, levels = c("1", "2", "3"))
-
-##narratives
-#perform EFA
-narr <- subset(mand[,c(38:45)])
-library(RcmdrMisc)
-
-rcorr.adjust(narr) 
-
-write.csv(cor(narr)>0.8, file="Suspect_Correlations.csv")
-write.csv(cor(narr), file="Correlation_Values.csv")
-
-library(psych)
-
-KMO(narr)
-cortest.bartlett(narr)
-
-ev <- eigen(cor(narr)) # get eigenvalues
-ev$values
-
-scree(narr, pc=FALSE)
-fa.parallel(narr, fa="fa")
-
-Nfacs <- 2  
-
-fit <- factanal(narr, Nfacs, rotation="promax")
-
-
-print(fit, digits=2, cutoff=0.3, sort=TRUE)
-
-load <- fit$loadings[,1:2]
-plot(load,type="n") # set up plot
-text(load,labels=names(narr),cex=.7)
-
 #subsetting and building means 
 
 micronarratives <- subset(mand[,c(38,40,42,44)])
 mand$micronarratives <- apply(micronarratives, 1, mean, na.rm=T)
+alpha(micronarratives) #.76
 
 mainstream <- subset(mand[,c(39,41,43,45)])
 mand$mainstream <- apply(mainstream, 1, mean, na.rm=T)
+alpha(mainstream) #.81
 
 
 #renaming things
@@ -305,44 +249,125 @@ onlymanipulation$gr_a[onlymanipulation$gr == 2] <- 1
 
 onlymanipulation$gr_a <- as.factor(onlymanipulation$gr_a)
 
+mand$gr_a[mand$gr == 1] <- 2
+mand$gr_a[mand$gr == 2] <- 1
+mand$gr_a[mand$gr == 3] <- 3
 
 save(mand, file="mand.RData")
 
 #done with cleaning plus data wrangling 
 
+#gender
+table(mand$gender)
+#167 women 313 men
+
+#ses
+range(mand$SES, na.rm = T)
+hist(mand$SES)
+#normal-ish
+
+#pol
+hist(mand$pol)
+table(mand$pol)
+#1CDU/CSU
+#2SPD
+#3Bündnis 90/Die Grünen
+#4FDP
+#5Die Linke
+#6Bündnis Sahra Wagenknecht (BSW)
+#7AfD
+#8Andere Partei
+#9Ich würde nicht wählen
+#10Ich möchte dazu keine Angabe machen"
+
+
+####correlations
+cors <- subset(mand[,c(68, 69,66, 67, 20, 12, 65, 72,73, 35, 70)])
+
+cors1 <- cors[mand$gr_a==1, ] #mandatory 
+cors2 <- cors[mand$gr_a==2, ] #voluntary
+cors3 <- cors[mand$gr_a==3, ] #control
+
+library(corrtable)
+save_correlation_matrix(cors1,
+                        filename = "cors1.csv",
+                        digits= 2, use="lower")
+
+save_correlation_matrix(cors2,
+                        filename = "cors2.csv",
+                        digits= 2, use="lower")
+
+save_correlation_matrix(cors3,
+                        filename = "cors3.csv",
+                        digits= 2, use="lower")
+
+meancors1 <- data.frame(round(sapply(cors1, mean, na.rm=T), digits=1))
+meancors2 <- data.frame(round(sapply(cors2, mean, na.rm=T), digits=1))
+meancors3 <- data.frame(round(sapply(cors3, mean, na.rm=T), digits=1))
+
+
+sdcors1 <- data.frame(round(sapply(cors1, sd, na.rm=T), digits=1))
+sdcors2 <- data.frame(round(sapply(cors2, sd, na.rm=T), digits=1))
+sdcors3 <- data.frame(round(sapply(cors3, sd, na.rm=T), digits=1))
+
+#in the manuscript the mandatory group is presented first for better 
+#comparability with poland 
+
+######
+
+
 
 ####analyses
 ##anova
-#1- freiwillig
-#2- verpflichtend
+#1- mandatory
+#2- voluntary
 #3 - control
 
-a <- aov(ssec ~ gr+tsec+finan, data=mand)
+mand$gr_a <- as.factor(mand$gr_a)
+
+#use gr_a when calculating with mand and onlymanipulation
+
+a <- aov(ssec ~ gr_a+tsec+finan, data=mand)
 summary(a)
-aa <- aov(ssec ~ gr, data=mand)
+aa <- aov(ssec ~ gr_a, data=mand)
 summary(aa)
+
 eta_squared(a)
 library(effectsize)
 eta_squared(aa)
 TukeyHSD(aa)
-cohen.d(ssec ~ gr, data=mand)
+
+library(apaTables)
+apa.aov.table(a, "a.doc",
+              conf.level = 0.95)
+
 #only manipulation
 
-b <- aov(ssec ~ gr+tsec+finan, data=onlymanipulation)
+b <- aov(ssec ~ gr_a+tsec+finan, data=onlymanipulation)
 summary(b)
-bb <- aov(ssec ~ gr, data=onlymanipulation)
+bb <- aov(ssec ~ gr_a, data=onlymanipulation)
 TukeyHSD(bb)
 eta_squared(b)
-cohens_d(ssec ~ gr, data=onlymanipulation) #-.13
+cohens_d(ssec ~ gr_a, data=onlymanipulation) #-.13
+
+apa.aov.table(b, "b.doc",,
+              conf.level = 0.95,
+              type=3)
+
 
 #comparisons with control are significant
 
-c <- aov(sfree ~ gr + tfree +finan , data=mand)
+c <- aov(sfree ~ gr_a + tfree +finan , data=mand)
 summary(c)
 eta_squared(c)
 TukeyHSD(c)
+
+cc <- aov(sfree ~ gr_a , data=mand)
+summary(cc)
+TukeyHSD(cc)
+
 #only manipulation
-d <- aov(sfree ~ gr_a, data=onlymanipulation)
+d <- aov(sfree ~ gr_a+ tfree +finan, data=onlymanipulation)
 summary(d)
 TukeyHSD(d)
 dfree<- cohen.d(sfree ~ gr_a, data=onlymanipulation)
@@ -353,11 +378,11 @@ mand$c_0001 <- ordered(mand$c_0001, levels = c("1", "2", "3"))
 
 
 #anova + pairwise comparisons
-mainst <- aov(mainstream ~ gr, data=mand)
+mainst <- aov(mainstream ~ gr_a, data=mand)
 summary(mainst)
 TukeyHSD(mainst)
 
-micron <- aov(micronarratives ~ gr, data=mand)
+micron <- aov(micronarratives ~ gr_a, data=mand)
 summary(micron)
 TukeyHSD(micron)
 
@@ -369,9 +394,24 @@ tma<- lm(mainstream~trust5, data=onlymanipulation)
 summary(tma)
 standardise(tma)
 
+library(sjPlot)
+tab_model(tma,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,
+          digits = 3,           
+          p.style = "numeric")
+
 tmi<- lm(micronarratives~trust5, data=onlymanipulation)
 summary(tmi)
 standardise(tmi)
+
+tab_model(tmi,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,    
+          digits = 3,           
+          p.style = "numeric")
 
 #will be added to the SEM
 
@@ -383,41 +423,66 @@ m3 <- lm(micronarratives~ ssec*med_act+tsec+finan, data=onlymanipulation)
 summary(m3)
 standardise(m3)
 ggpredict(m3, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
+tab_model(m3,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,    
+          digits = 3,           
+          p.style = "numeric")
 
 m3.1 <- lm(mainstream~ ssec*med_act+tsec+finan, data=onlymanipulation)
 summary(m3.1)
 ggpredict(m3.1, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
+
+tab_model(m3.1,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,    
+          digits = 3,           
+          p.style = "numeric")
+
 
 m4 <- lm(micronarratives~ sfree*med_act+tfree+finan, data=onlymanipulation)
 summary(m4)
 standardise(m4)
 ggpredict(m3, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
 
+tab_model(m4,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,    
+          digits = 3,           
+          p.style = "numeric")
 
 m4.1 <- lm(mainstream~ sfree*med_act+tfree+finan, data=onlymanipulation)
 summary(m4.1)
 standardise(m4.1)
 ggpredict(m3.1, terms = c("ssec[1:7 by=0.1]", "med_act[1:6 by=2]")) |> plot()
-
+tab_model(m4.1,
+          show.std = TRUE,     
+          show.se = TRUE,       
+          show.fstat = TRUE,    
+          digits = 3,           
+          p.style = "numeric")
 #no active media use effects 
 
 #H5: The perceived effectiveness of the proposed policy will not differ between 
 #the mandatory and the voluntary conditions.
-a <- aov(man_eff~gr, data=onlymanipulation)
+a <- aov(man_eff~gr_a, data=onlymanipulation)
 eta_squared(a)
 summary(a)
 TukeyHSD(a)
-#mandatory policy seen as more effective
+#similar
 
 #H6: Participants in the mandatory condition will perceive the policy to be less 
 #acceptable in comparison to those in the voluntary and control conditions.
 
-b <- aov(man_acc~gr, data=onlymanipulation)
+b <- aov(man_acc~gr_a, data=onlymanipulation)
 summary(b)
 TukeyHSD(b)
 eta_squared(b)
 
-#both similar
+#mandatory less effective
 
 
 ###SEM Time ####
@@ -427,10 +492,59 @@ forsem <- onlymanipulation
 which(is.na(forsem$c_0001))
 #no missings
 
-#with (numerical) dummy variable 
-#state need for security 
+#checking the factor structure of narratives 
 
+nar.model <- '
+  Mainstream=~narrative_2  +narrative_4  +narrative_6  +narrative_8  
+  Micronarratives=~narrative_1+narrative_3+narrative_5+ narrative_7 
+
+  Mainstream ~~ Micronarratives
+'
+
+nar.fit <- cfa(nar.model, data = forsem, estimator = "ML")
+summary(nar.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci= T)
+
+#check if anyone in the sample already had exclusively climate friendly heaters 
+table(mand[ , mand$heiz1==1 & mand[, c(40:45)] == 0]$heiz1)
+mand$heiz1[mand$heiz1==2 & mand[, c(40:44)] == 0]
+
+
+#with (numerical) dummy variable gr_1
+
+#base model without the needs 
 set.seed(545)
+
+n.model <- '
+  Mainstream=~narrative_2  +narrative_4  +narrative_6  +narrative_8  
+  Micronarratives=~narrative_1+narrative_3+narrative_5+ narrative_7 
+
+  Micronarratives ~ gr_1
+  Mainstream ~gr_1
+  Mainstream ~~ Micronarratives
+
+'
+
+n.fit <- sem(n.model, data = forsem, estimator = "ML")
+summary(n.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci= T)
+
+nfitestimates <- parameterestimates(n.fit)
+standardisednfit <- standardizedSolution(n.fit)
+nfitcovariancematrix <- data.frame(fitted(n.fit))
+nfitresiduals <- data.frame(resid(n.fit))
+fitnfit <- data.frame(fitMeasures(n.fit))
+
+library(openxlsx)
+nfitdatabases <- list("parameter estimates" = nfitestimates, 
+                      "standardised pe" = standardisednfit,
+                      "covariance matrix" = nfitcovariancematrix,
+                      "residuals" = nfitresiduals,
+                      "fit estimates" = fitnfit)
+
+write.xlsx(nfitdatabases, file = "nfit.xlsx", colNames = T, rowNames = T)
+
+
+#mediation model with the state need for security 
+
 med.model <- '
   stateneedsecurity =~ ssec1+ssec2+ssec3
   Mainstream=~narrative_2+narrative_4+narrative_6+narrative_8  
@@ -455,23 +569,24 @@ med.fit <- sem(med.model, data = forsem, estimator = "ML", missing = "FIML",
 summary(med.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
 
 
-#without the needs (base model)
+medfitestimates <- parameterestimates(med.fit)
+standardisedmedfit <- standardizedSolution(med.fit)
+medfitcovariancematrix <- data.frame(fitted(med.fit))
+medfitresiduals <- data.frame(resid(med.fit))
+fitmedfit <- data.frame(fitMeasures(med.fit))
 
-n.model <- '
-  Mainstream=~narrative_2  +narrative_4  +narrative_6  +narrative_8  
-  Micronarratives=~narrative_1+narrative_3+narrative_5+ narrative_7 
+library(openxlsx)
+medfitdatabases <- list("parameter estimates" = medfitestimates, 
+                        "standardised pe" = standardisedmedfit,
+                        "covariance matrix" = medfitcovariancematrix,
+                        "residuals" = medfitresiduals,
+                        "fit estimates" = fitmedfit)
 
-  Micronarratives ~ gr_1
-  Mainstream ~gr_1
-  Mainstream ~~ Micronarratives
-
-'
-
-n.fit <- sem(n.model, data = forsem, estimator = "ML")
-summary(n.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci= T)
+write.xlsx(medfitdatabases, file = "medfit.xlsx", colNames = T, rowNames = T)
 
 
-##add trust as a buffer 
+
+##mediation model, adding trust as a buffer 
 
 tmed.model <- '
   stateneedsecurity =~ ssec1+ssec2+ssec3
@@ -500,7 +615,24 @@ tmed.fit <- sem(tmed.model, data = forsem, estimator = "ML",
                 parallel ="multicore", verbose= F)
 summary(tmed.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
 
-##add active media use as a moderator
+tmedfitestimates <- parameterestimates(tmed.fit)
+standardisedtmedfit <- standardizedSolution(tmed.fit)
+tmedfitcovariancematrix <- data.frame(fitted(tmed.fit))
+tmedfitresiduals <- data.frame(resid(tmed.fit))
+fittmedfit <- data.frame(fitMeasures(tmed.fit))
+
+library(openxlsx)
+tmedfitdatabases <- list("parameter estimates" = tmedfitestimates, 
+                        "standardised pe" = standardisedtmedfit,
+                        "covariance matrix" = tmedfitcovariancematrix,
+                        "residuals" = tmedfitresiduals,
+                        "fit estimates" = fittmedfit)
+
+write.xlsx(tmedfitdatabases, file = "tmedfit.xlsx", colNames = T, rowNames = T)
+
+
+
+##adding active media use as a moderator
 
 dmcforsem <- forsem
 
@@ -533,8 +665,23 @@ amed.fit <- sem(amed.model, data = dmcforsem, estimator = "MLM")
 summary(amed.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci =T)
 
 
-#state need for freedom without mediators and moderators
-set.seed(545)
+amedfitestimates <- parameterestimates(amed.fit)
+standardisedamedfit <- standardizedSolution(amed.fit)
+amedfitcovariancematrix <- data.frame(fitted(amed.fit))
+amedfitresiduals <- data.frame(resid(amed.fit))
+fitamedfit <- data.frame(fitMeasures(amed.fit))
+
+amedfitdatabases <- list("parameter estimates" = amedfitestimates, 
+                        "standardised pe" = standardisedamedfit,
+                        "covariance matrix" = amedfitcovariancematrix,
+                        "residuals" = amedfitresiduals,
+                        "fit estimates" = fitamedfit)
+
+write.xlsx(amedfitdatabases, file = "amedfit.xlsx", colNames = T, rowNames = T)
+
+
+
+#mediation model with state need for freedom 
 
 freed.model <- '
   stateneedfreedom =~sfree1+sfree2+sfree3
@@ -562,8 +709,22 @@ freed.fit <- sem(freed.model, data = forsem, estimator = "ML", missing = "FIML",
                  parallel ="multicore", verbose= T)
 summary(freed.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
 
+freedfitestimates <- parameterestimates(freed.fit)
+standardisedfreedfit <- standardizedSolution(freed.fit)
+freedfitcovariancematrix <- data.frame(fitted(freed.fit))
+freedfitresiduals <- data.frame(resid(freed.fit))
+fitfreedfit <- data.frame(fitMeasures(freed.fit))
 
-#need for freedom with trust as buffer 
+freedfitdatabases <- list("parameter estimates" = freedfitestimates, 
+                         "standardised pe" = standardisedfreedfit,
+                         "covariance matrix" = freedfitcovariancematrix,
+                         "residuals" = freedfitresiduals,
+                         "fit estimates" = fitfreedfit)
+
+write.xlsx(freedfitdatabases, file = "freedfit.xlsx", colNames = T, rowNames = T)
+
+
+#mediation model with need for freedom with trust as buffer 
 frtr.model <- '
   needfreedom =~ sfree1+sfree2+sfree3
   Mainstream =~ narrative_2+narrative_4+narrative_6+narrative_8  
@@ -590,7 +751,23 @@ frtr.fit <- sem(frtr.model, data = forsem, estimator = "ML", missing = "FIML",
                 parallel ="multicore", verbose= T)
 summary(frtr.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
 
-#need for freedom with active media use as moderator
+frtrfitestimates <- parameterestimates(frtr.fit)
+standardisedfrtrfit <- standardizedSolution(frtr.fit)
+frtrfitcovariancematrix <- data.frame(fitted(frtr.fit))
+frtrfitresiduals <- data.frame(resid(frtr.fit))
+fitfrtrfit <- data.frame(fitMeasures(frtr.fit))
+
+frtrfitdatabases <- list("parameter estimates" = frtrfitestimates, 
+                         "standardised pe" = standardisedfrtrfit,
+                         "covariance matrix" = frtrfitcovariancematrix,
+                         "residuals" = frtrfitresiduals,
+                         "fit estimates" = fitfrtrfit)
+
+write.xlsx(frtrfitdatabases, file = "frtrfit.xlsx", colNames = T, rowNames = T)
+
+
+
+#mediation model for need for freedom adding active media use as moderator
 fdmcforsem <- forsem
 
 #double mean centering
@@ -623,13 +800,28 @@ summary(framed.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
 
 
 
-#you should now have 3 SEMs each for need for security and need for freedom 
+framedfitestimates <- parameterestimates(framed.fit)
+standardisedframedfit <- standardizedSolution(framed.fit)
+framedfitcovariancematrix <- data.frame(fitted(framed.fit))
+framedfitresiduals <- data.frame(resid(framed.fit))
+fitframedfit <- data.frame(fitMeasures(framed.fit))
 
+framedfitdatabases <- list("parameter estimates" = framedfitestimates, 
+                         "standardised pe" = standardisedframedfit,
+                         "covariance matrix" = framedfitcovariancematrix,
+                         "residuals" = framedfitresiduals,
+                         "fit estimates" = fitframedfit)
+
+write.xlsx(framedfitdatabases, file = "framedfit.xlsx", colNames = T, rowNames = T)
+
+
+
+#you should now have 3 SEMs each for need for security and need for freedom 
 
 
 #with different groups (experimental vs. control)
 
-med.model <- '
+diffmed.model <- '
   stateneedsecurity =~ ssec1+ssec2+ssec3
   Mainstream=~narrative_2+narrative_4+narrative_6+narrative_8  
   Micronarratives=~narrative_1+narrative_3+narrative_5+narrative_7 
@@ -647,10 +839,27 @@ med.model <- '
 
 '
 
-med.fit <- sem(med.model, data = mand, estimator = "ML", missing = "FIML",
+diffmed.fit <- sem(diffmed.model, data = mand, estimator = "ML", missing = "FIML",
                se = "bootstrap",bootstrap = 5000L, 
                parallel ="multicore", verbose= T)
-summary(med.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
+summary(diffmed.fit, fit.measures=T, standardized = T, rsquare=TRUE, ci=T)
+
+
+
+
+diffmedfitestimates <- parameterestimates(diffmed.fit)
+standardiseddiffmedfit <- standardizedSolution(diffmed.fit)
+diffmedfitcovariancematrix <- data.frame(fitted(diffmed.fit))
+diffmedfitresiduals <- data.frame(resid(diffmed.fit))
+fitdiffmedfit <- data.frame(fitMeasures(diffmed.fit))
+
+diffmedfitdatabases <- list("parameter estimates" = diffmedfitestimates, 
+                           "standardised pe" = standardiseddiffmedfit,
+                           "covariance matrix" = diffmedfitcovariancematrix,
+                           "residuals" = diffmedfitresiduals,
+                           "fit estimates" = fitdiffmedfit)
+
+write.xlsx(diffmedfitdatabases, file = "diffmedfit.xlsx", colNames = T, rowNames = T)
 
 
 
